@@ -1,0 +1,81 @@
+{
+  "_comment": [
+    "parofix 設定ファイル（パロディウス ポータブル ULJM-05220 用）",
+    "iso      : 元の UMD イメージ。出力は <同名>_converted.iso になる（output で変更可）",
+    "defaults : encoder=atracdenc(同梱, ATRAC3 132kbps) または at3tool(Sony 製, ATRAC3plus 64kbps)",
+    "replacements の各要素:",
+    "  target     paro2=パロディウスだ! / paro4=極上パロディウス / paro3=実況おしゃべり / paro5=セクシー / menu=ミュージックモード",
+    "  index      差し替えるトラック番号（bgm-list / identify コマンドで確認）",
+    "  wav        CD からリッピングした音源（44.1kHz WAV 推奨。他形式は ffmpeg があれば可）",
+    "  loop_start ループ開始位置。 '1:23.456' (分:秒) / '12.5s' (秒) / 123456 (サンプル数) で指定",
+    "  loop_end   ループ終了位置 = 2周目の同じ箇所。ここで音声を切ってループさせる（フェードアウト部分は不要）",
+    "  no_loop    true にするとループせず最後まで再生（end で切る位置、fade_out でフェード長を指定可）",
+    "  gain_db    音量調整 (dB)。CD 音源がゲーム内より大きい/小さい時に",
+    "  also_music_mode  true にするとミュージックモード (menu) の対応トラックも同じ音源で差し替える",
+    "  menu_index       ミュージックモード側のトラック番号を明示する場合",
+    "  disabled   true にするとその行を無視",
+    "※ index の値は解析による推定を含みます。『要確認』のものは identify コマンドで確認してください",
+    "※ サンプルの loop_start/loop_end は PSP 版の元トラックのループ位置（参考値）。CD 音源に合わせて必ず測り直してください"
+  ],
+
+  "iso": "PARODIUS-PORTABLE.ISO",
+  "output": null,
+  "work_dir": null,
+
+  "defaults": {
+    "encoder": "atracdenc",
+    "bitrate": 132,
+    "gain_db": 0,
+    "at3tool_path": null
+  },
+
+  "replacements": [
+    {
+      "_comment": "パロディウスだ! ステージ4(日本面) 剣の舞。index=7 は推定（要確認: identify で CD に無い曲のスロットを確認）",
+      "target": "paro2",
+      "index": 7,
+      "wav": "cd/paroda_st4_kennomai.wav",
+      "loop_start": "0:03.000",
+      "loop_end": "1:00.400",
+      "also_music_mode": true,
+      "menu_index": 42
+    },
+    {
+      "_comment": "極上パロディウス ステージ1(クレーン面) イン・ザ・ムード (12SD_BGM1)",
+      "target": "paro4",
+      "index": 11,
+      "wav": "cd/gokupa_st1_in_the_mood.wav",
+      "loop_start": "0:03.910",
+      "loop_end": "0:50.870",
+      "also_music_mode": true,
+      "menu_index": 69
+    },
+    {
+      "_comment": "極上パロディウス ステージ3ボス マンボNo.5 (18SD_BOSS3)",
+      "target": "paro4",
+      "index": 17,
+      "wav": "cd/gokupa_st3boss_mambo5.wav",
+      "loop_start": "0:07.717",
+      "loop_end": "0:37.713",
+      "also_music_mode": true,
+      "menu_index": 76
+    },
+
+    {
+      "_comment": "（任意）実況おしゃべりパロディウス ステージ1 ザッツ・ザ・ウェイ。index は identify で確認して記入",
+      "target": "paro3",
+      "index": null,
+      "wav": "cd/oshaberi_st1_thats_the_way.wav",
+      "loop_start": null,
+      "loop_end": null,
+      "disabled": true
+    },
+    {
+      "_comment": "（任意）セクシーパロディウス ステージ3Aボス マイム・マイム 等も同様に追加できる",
+      "target": "paro5",
+      "index": null,
+      "wav": "cd/sexy_st3a_boss_mayim.wav",
+      "disabled": true
+    }
+  ]
+}

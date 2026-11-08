@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>parofix チュートリアル — パロディウス ポータブル BGM 復元手順</title>
+<style>
+  :root { --bg:#fbfaf7; --fg:#222; --accent:#b4232c; --box:#fff; --line:#ddd; --code:#f3f1ea; --note:#fff6d6; --ok:#e8f6e8; }
+  body { font-family: "Segoe UI","Hiragino Sans","Noto Sans JP",Meiryo,sans-serif; background:var(--bg); color:var(--fg); margin:0; line-height:1.75; }
+  main { max-width: 900px; margin: 0 auto; padding: 24px 16px 80px; }
+  h1 { font-size:1.7em; border-bottom:3px solid var(--accent); padding-bottom:8px; }
+  h2 { font-size:1.3em; margin-top:2.2em; border-left:6px solid var(--accent); padding-left:10px; }
+  h3 { font-size:1.08em; margin-top:1.6em; }
+  code, pre { font-family: Consolas, "Courier New", monospace; }
+  code { background:var(--code); padding:1px 5px; border-radius:3px; }
+  pre { background:#1e1e1e; color:#eee; padding:12px 14px; border-radius:6px; overflow-x:auto; font-size:0.92em; }
+  pre code { background:none; padding:0; color:inherit; }
+  table { border-collapse:collapse; width:100%; margin:10px 0; background:var(--box); }
+  th, td { border:1px solid var(--line); padding:7px 10px; text-align:left; vertical-align:top; }
+  th { background:#f0ece2; }
+  .note { background:var(--note); border-left:5px solid #e0b000; padding:10px 14px; margin:14px 0; border-radius:4px; }
+  .ok { background:var(--ok); border-left:5px solid #3a9a3a; padding:10px 14px; margin:14px 0; border-radius:4px; }
+  .tree { background:var(--code); padding:12px 16px; border-radius:6px; white-space:pre; font-family:Consolas,monospace; font-size:0.95em; }
+  .step { counter-increment: step; }
+  .step::before { content: "STEP " counter(step); display:inline-block; background:var(--accent); color:#fff; font-weight:bold; padding:0 10px; border-radius:4px; margin-right:10px; font-size:0.85em; }
+  nav ol { columns: 2; }
+  small { color:#666; }
+</style>
+</head>
+<body>
+<main>
+<h1>parofix チュートリアル<br><small>パロディウス ポータブル (PSP) の差し替え BGM をサントラ CD の音源で復元する</small></h1>
+
+<p>このマニュアルは、PSP『パロディウス ポータブル』の UMD イメージ (ISO) に含まれる
+<b>パロディウスだ! ステージ4</b> と <b>極上パロディウス ステージ1・ステージ3ボス</b> の BGM を、
+CD『ミュージック フロム コナミアーケードシューティング』の音源で差し替え、
+<code>PARODIUS-PORTABLE_converted.ISO</code> を作るまでの手順を、環境構築から順に説明します。</p>
+
+<div class="note"><b>用意するもの</b><br>
+・Windows 10/11 の PC<br>
+・自分で吸い出した『パロディウス ポータブル』の ISO（例: <code>PARODIUS-PORTABLE.ISO</code>）<br>
+・CD『ミュージック フロム コナミアーケードシューティング』DISC 3 と DISC 5<br>
+・parofix 一式 (<code>parofix_vX.X.zip</code>)</div>
+
+<nav>
+<b>目次</b>
+<ol>
+<li><a href="#py">Python 3.8 以上のインストール</a></li>
+<li><a href="#venv">仮想環境 (venv) の作成</a></li>
+<li><a href="#setup">parofix の配置</a></li>
+<li><a href="#rip">CD から該当トラックを吸い出す</a></li>
+<li><a href="#place">ファイル名とフォルダ構成</a></li>
+<li><a href="#config">設定ファイルの確認</a></li>
+<li><a href="#loop">（任意）ループ位置の検出・確認</a></li>
+<li><a href="#run">変換の実行</a></li>
+<li><a href="#check">動作確認</a></li>
+<li><a href="#trouble">困ったとき</a></li>
+</ol>
+</nav>
+
+<h2 id="py">1. Python 3.8 以上のインストール</h2>
+<p class="step">公式サイト <a href="https://www.python.org/downloads/windows/">python.org/downloads/windows</a> から
+Windows 用インストーラ（64bit）をダウンロードします。parofix は Python 3.8 以上で動きます。
+特にこだわりが無ければ最新の 3.x で構いません。</p>
+<p class="step">インストーラの最初の画面で <b>「Add python.exe to PATH」</b>（古い版では「Add Python 3.x to PATH」）に
+必ずチェックを入れてから「Install Now」を押します。</p>
+<p class="step">インストール後、スタートメニューから <b>コマンド プロンプト</b>（または PowerShell）を開き、
+次のコマンドでバージョンが表示されれば成功です。</p>
+<pre><code>py --version
+python --version</code></pre>
+<div class="note"><code>py</code> は Windows 版 Python に付属するランチャーで、複数バージョンを入れていても
+<code>py -3.8</code> のように版を選べます。このマニュアルでは以降 <code>py</code> を使います。
+<code>py</code> が無い環境では <code>python</code> に読み替えてください。</div>
+
+<h2 id="venv">2. 仮想環境 (venv) の作成</h2>
+<p>parofix が必要とする追加ライブラリは <b>numpy</b> だけです。
+システムの Python を汚さないよう、作業フォルダに仮想環境を作ってそこに入れます。</p>
+<p class="step">作業フォルダを作ります。日本語や空白を含まないパスにすると後々トラブルが減ります。例として
+<code>C:\parofix</code> を使います。</p>
+<pre><code>mkdir C:\parofix
+cd /d C:\parofix</code></pre>
+<p class="step">仮想環境を作成して有効化します。</p>
+<pre><code>py -m venv venv
+venv\Scripts\activate</code></pre>
+<p>有効化されるとプロンプトの先頭に <code>(venv)</code> と表示されます。
+特定の版を使いたいときは <code>py -3.8 -m venv venv</code> のように指定します。</p>
+<div class="note">PowerShell で <code>activate</code> が「スクリプトの実行が無効」と拒否される場合は、
+いったん <code>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code> を実行するか、
+コマンド プロンプト (cmd.exe) を使ってください。</div>
+<p class="step">numpy をインストールします。</p>
+<pre><code>python -m pip install --upgrade pip
+python -m pip install numpy</code></pre>
+<div class="ok">次回以降、作業を再開するときは <code>cd /d C:\parofix</code> → <code>venv\Scripts\activate</code> の 2 行だけで OK です。</div>
+
+<h2 id="setup">3. parofix の配置</h2>
+<p class="step"><code>parofix_vX.X.zip</code> を展開し、中の <code>parofix</code> フォルダの<b>中身</b>を <code>C:\parofix</code> に置きます。
+置き終わると次のようになります。</p>
+<div class="tree">C:\parofix\
+├─ venv\                      ← 手順 2 で作った仮想環境
+├─ parofix.py                 ← 起動スクリプト
+├─ parofix\                   ← 本体
+├─ bin\atracdenc.exe          ← 同梱の ATRAC3 エンコーダ
+├─ config\parodius_portable.json
+├─ config\my_config_example.json
+├─ docs\tutorial.html         ← このファイル
+├─ run.bat
+└─ README.md</div>
+<p class="step">ISO をここにコピーします（名前はそのままで構いません。以下 <code>PARODIUS-PORTABLE.ISO</code> とします）。</p>
+<p class="step">動作確認として、ISO の中身が一覧できるか試します。</p>
+<pre><code>python parofix.py bgm-list --iso PARODIUS-PORTABLE.ISO --target paro4</code></pre>
+<p>極上パロディウスの 46 曲が <code>[ 11] ... 12SD_BGM1</code> のように並べば準備完了です。</p>
+
+<h2 id="rip">4. CD から該当トラックを吸い出す</h2>
+<p>差し替えに使う CD トラックは次の 3 曲です。</p>
+<table>
+<tr><th>ゲーム / 場面</th><th>CD</th><th>トラック</th><th>曲名</th><th>差し替え先</th></tr>
+<tr><td>パロディウスだ! ステージ4（日本面）</td><td>DISC 3</td><td>42</td><td>嗚呼！日本旅情 (4st.BGM)</td><td><code>paro2</code> #7</td></tr>
+<tr><td>極上パロディウス ステージ1（クレーン面）</td><td>DISC 5</td><td>35</td><td>イン・ザ・クレーンゲーム (1st.BGM)</td><td><code>paro4</code> #11 (12SD_BGM1)</td></tr>
+<tr><td>極上パロディウス ステージ3 ボス</td><td>DISC 5</td><td>42</td><td>クッキングマンボ (3st.ボスBGM)</td><td><code>paro4</code> #17 (18SD_BOSS3)</td></tr>
+</table>
+<p class="step">お好みのリッピングソフトで上の 3 トラックを <b>WAV（44.1kHz / 16bit / ステレオ、CD そのまま）</b>で取り込みます。
+Exact Audio Copy、foobar2000、Windows Media Player、iTunes 等どれでも構いません。
+<b>音量の正規化（ノーマライズ）や ReplayGain の適用は OFF</b> にしてください。</p>
+<div class="note">FLAC で取り込んでも使えますが、その場合は <code>ffmpeg.exe</code> を <code>C:\parofix\bin\</code> に置く必要があります
+（<a href="https://www.gyan.dev/ffmpeg/builds/">gyan.dev</a> などの Windows ビルドから <code>ffmpeg.exe</code> だけ取り出せば十分です）。
+WAV なら ffmpeg は不要です。</div>
+
+<h2 id="place">5. ファイル名とフォルダ構成</h2>
+<p class="step"><code>C:\parofix\cd</code> フォルダを作り、吸い出した WAV を次の名前にリネームして置きます。</p>
+<table>
+<tr><th>CD トラック</th><th>ファイル名</th></tr>
+<tr><td>DISC3 - 42 嗚呼！日本旅情</td><td><code>paroda_st4_kennomai.wav</code></td></tr>
+<tr><td>DISC5 - 35 イン・ザ・クレーンゲーム</td><td><code>gokupa_st1_in_the_mood.wav</code></td></tr>
+<tr><td>DISC5 - 42 クッキングマンボ</td><td><code>gokupa_st3boss_mambo5.wav</code></td></tr>
+</table>
+<div class="tree">C:\parofix\
+├─ PARODIUS-PORTABLE.ISO
+├─ my_config.json             ← 次の手順で作る
+└─ cd\
+    ├─ paroda_st4_kennomai.wav
+    ├─ gokupa_st1_in_the_mood.wav
+    └─ gokupa_st3boss_mambo5.wav</div>
+<p>別の名前にしたい場合は、設定ファイルの <code>"wav"</code> を合わせて書き換えれば問題ありません。</p>
+
+<h2 id="config">6. 設定ファイルの確認</h2>
+<p class="step"><code>config\my_config_example.json</code> を <code>C:\parofix\my_config.json</code> にコピーし、メモ帳などで開きます。
+内容は次のとおりで、ループ位置には<b>上記 3 トラックの CD 音源で検出・試聴確認済みの値</b>が入っています。
+拡張子だけ <code>.flac</code> → <code>.wav</code> に合わせてください。</p>
+<pre><code>{
+  "iso": "PARODIUS-PORTABLE.ISO",
+  "defaults": { "encoder": "atracdenc", "bitrate": 132, "gain_db": 0 },
+  "replacements": [
+    { "target": "paro2", "index": 7,  "wav": "cd/paroda_st4_kennomai.wav",
+      "loop_start": 68470,  "loop_end": 1363995,
+      "also_music_mode": true, "menu_index": 42 },
+
+    { "target": "paro4", "index": 11, "wav": "cd/gokupa_st1_in_the_mood.wav",
+      "loop_start": 441832, "loop_end": 2395297,
+      "also_music_mode": true, "menu_index": 69 },
+
+    { "target": "paro4", "index": 17, "wav": "cd/gokupa_st3boss_mambo5.wav",
+      "loop_start": 239851, "loop_end": 1976752,
+      "also_music_mode": true, "menu_index": 76 }
+  ]
+}</code></pre>
+<table>
+<tr><th>キー</th><th>意味</th></tr>
+<tr><td><code>iso</code></td><td>元 ISO。設定ファイルからの相対パス</td></tr>
+<tr><td><code>target</code> / <code>index</code></td><td>差し替え先のゲームとトラック番号（上の表のとおり）</td></tr>
+<tr><td><code>wav</code></td><td>CD 音源ファイル</td></tr>
+<tr><td><code>loop_start</code> / <code>loop_end</code></td><td>ループ区間（サンプル数）。<code>loop_end</code> 以降（2 周目・フェードアウト）は切り捨てられ、容量も小さくなります</td></tr>
+<tr><td><code>also_music_mode</code> / <code>menu_index</code></td><td>ミュージックモードの同じ曲も差し替える</td></tr>
+<tr><td><code>gain_db</code></td><td>音量補正。ゲーム内で CD 音源だけ大きい/小さいと感じたら ±2 程度で調整</td></tr>
+</table>
+<div class="note">ループ位置の値は、CD のプレス違いや取り込みソフトのオフセット補正によって数十サンプル前後ずれることがあります。
+継ぎ目にわずかなノイズを感じる場合は次の手順 7 で検出し直してください。</div>
+
+<h2 id="loop">7. （任意）ループ位置の検出・確認</h2>
+<p>自分の音源で検出し直すときは <code>loopfind</code> を使います。<code>--near</code> に「ループが始まるおおよその位置」を与えると、
+その付近で継ぎ目が最も滑らかな点をサンプル単位で探します。</p>
+<pre><code>python parofix.py loopfind cd\gokupa_st1_in_the_mood.wav --near 0:10.0  --preview seam_itm.wav
+python parofix.py loopfind cd\gokupa_st3boss_mambo5.wav  --near 0:05.7  --preview seam_mambo.wav
+python parofix.py loopfind cd\paroda_st4_kennomai.wav    --near 0:01.25 --preview seam_kennomai.wav</code></pre>
+<p>結果の「config には <code>"loop_start": ..., "loop_end": ...</code> と書けます」の行をそのまま設定ファイルに転記します。
+<code>--preview</code> で出る WAV は「loop_end 手前 4 秒 → ループで戻って 6 秒」を 2 回繰り返したもので、継ぎ目を試聴できます。
+継ぎ目一致度は 0.8 以上なら自然に繋がります（基板録音はテンポが微妙に揺れるので 1.0 にはなりません）。</p>
+
+<h2 id="run">8. 変換の実行</h2>
+<p class="step">仮想環境を有効にした状態で実行します。</p>
+<pre><code>cd /d C:\parofix
+venv\Scripts\activate
+python parofix.py run my_config.json</code></pre>
+<p>または <code>my_config.json</code> を <code>run.bat</code> にドラッグ＆ドロップしても同じです
+（<code>run.bat</code> は同じフォルダに <code>venv</code> があれば自動で有効化します）。</p>
+<p>処理は 1〜2 分で終わり、次のように表示されれば成功です。</p>
+<pre><code>=== 出力 ISO の確認 ===
+  パロディウスだ! 〜神話からお笑いへ〜: 34 トラック
+    [7] ATRAC3 132kbps ch=2   30.93s ... loop 68470-1363995 (1.55s-30.93s)  OK
+  ミュージックプレイヤーモード（全曲）: 232 トラック
+    [42] ... OK   [69] ... OK   [76] ... OK
+  極上パロディウス 〜過去の栄光を求めて〜: 46 トラック
+    [11] ATRAC3 132kbps ch=2   54.32s ... loop 441832-2395297 (10.02s-54.32s)  OK
+    [17] ATRAC3 132kbps ch=2   44.82s ... loop 239851-1976752 (5.44s-44.82s)  OK
+
+完成: C:\parofix\PARODIUS-PORTABLE_converted.ISO</code></pre>
+<div class="ok">出来上がりは <code>PARODIUS-PORTABLE_converted.ISO</code>（約 357MB。ファイル領域を詰め直すので元より小さくなります）。
+元の ISO は書き換えられません。<code>PARODIUS-PORTABLE_work\</code> には生成した .at3 と bgm.bin が残ります（不要なら削除可）。</div>
+
+<h2 id="check">9. 動作確認</h2>
+<p class="step">PPSSPP で <code>PARODIUS-PORTABLE_converted.ISO</code> を起動し、メインメニューで ◀▶ でゲームを切り替え、
+極上パロディウスを選んでステージ1 の BGM を確認します。パロディウスだ! はステージ4（日本面）です。</p>
+<p class="step">ミュージックモードでも、該当する曲名のトラックが差し替わっていることを確認します。
+形式チェックだけなら次のコマンドでも行えます（元から入っている長尺曲に対するサイズ警告は無視して構いません）。</p>
+<pre><code>python parofix.py verify --iso PARODIUS-PORTABLE_converted.ISO</code></pre>
+<p class="step">実機 (CFW) で使う場合は <code>ms0:/ISO/</code> にコピーしてください。通常の ISO9660 イメージなので特別な設定は不要です。</p>
+
+<h2 id="trouble">10. 困ったとき</h2>
+<table>
+<tr><th>症状</th><th>対処</th></tr>
+<tr><td><code>'python' は内部コマンド…として認識されていません</code></td><td>インストール時に PATH を追加していません。インストーラを再実行して「Modify」→「Add Python to environment variables」にチェック、または <code>py</code> を使う</td></tr>
+<tr><td><code>ModuleNotFoundError: No module named 'numpy'</code></td><td>仮想環境が有効になっていません。<code>venv\Scripts\activate</code> を実行してから再度</td></tr>
+<tr><td><code>atracdenc が見つかりません</code></td><td><code>bin\atracdenc.exe</code> が無いか、zip 展開時に階層がずれています。<code>parofix.py</code> と同じ場所に <code>bin</code> フォルダがあるか確認</td></tr>
+<tr><td><code>44.1kHz の PCM WAV ではありません</code></td><td>FLAC/MP3 や 48kHz の音源です。WAV で取り込み直すか <code>bin\ffmpeg.exe</code> を置く</td></tr>
+<tr><td>SmartScreen / ウイルス対策が <code>atracdenc.exe</code> を止める</td><td>オープンソースの atracdenc を静的ビルドしたものです（<code>bin\licenses</code> 参照）。除外設定するか、自分でビルドしたものに差し替えても動きます</td></tr>
+<tr><td>差し替えた曲だけ鳴らない</td><td>v1.1 以前の既知の問題（ヘッダの endSample 条件）です。v1.2 以降で変換し直してください。<code>verify</code> で該当トラックに NG が出ないことを確認</td></tr>
+<tr><td>ループの継ぎ目にプチノイズ</td><td>手順 7 で自分の音源から <code>loopfind --near</code> し直す。別の開始位置（例: 剣の舞 <code>361546-1657120</code>、マンボ <code>84767-1821857</code>）も試せます</td></tr>
+<tr><td>CD 音源の音量がゲーム内の他曲と違う</td><td>該当行に <code>"gain_db": -2</code> のように追加</td></tr>
+</table>
+
+<p><small>parofix (c) 2026 Imaha486 — MIT License。個人利用を想定したツールです。ISO と CD は正規に所有するものをお使いください。生成した ISO は配布しないでください。</small></p>
+</main>
+</body>
+</html>

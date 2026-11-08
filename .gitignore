@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+venv/
+.venv/
+*.ISO
+*.iso
+*.at3
+*_work/
+cd/
+my_config.json
+seam*.wav
+*.log
+.DS_Store
+Thumbs.db

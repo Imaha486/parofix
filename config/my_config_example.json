@@ -1,0 +1,24 @@
+{
+  "iso": "PARODIUS-PORTABLE.ISO",
+  "defaults": { "encoder": "atracdenc", "bitrate": 132, "gain_db": 0 },
+  "replacements": [
+    {
+      "_comment": "パロディウスだ! ステージ4(日本面) 剣の舞 (index 7 推定)。loopfind --near 0:01.25 の結果 / 別候補: 361546-1657120 (8.198s-37.576s, 継ぎ目 0.916)",
+      "target": "paro2", "index": 7, "wav": "cd/paroda_st4_kennomai.wav",
+      "loop_start": 68470, "loop_end": 1363995,
+      "also_music_mode": true, "menu_index": 42
+    },
+    {
+      "_comment": "極上パロディウス ステージ1 イン・ザ・ムード (12SD_BGM1)。loopfind --near 0:10.02 の結果 (継ぎ目 0.966)",
+      "target": "paro4", "index": 11, "wav": "cd/gokupa_st1_in_the_mood.wav",
+      "loop_start": 441832, "loop_end": 2395297,
+      "also_music_mode": true, "menu_index": 69
+    },
+    {
+      "_comment": "極上パロディウス ステージ3ボス マンボNo.5 (18SD_BOSS3)。loopfind --near 0:05.74 の結果 (継ぎ目 0.910) / 別候補: 84767-1821857 (1.922s-41.312s, 継ぎ目 0.983)",
+      "target": "paro4", "index": 17, "wav": "cd/gokupa_st3boss_mambo5.wav",
+      "loop_start": 239851, "loop_end": 1976752,
+      "also_music_mode": true, "menu_index": 76
+    }
+  ]
+}
