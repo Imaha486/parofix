@@ -29,7 +29,7 @@ WAV → ATRAC 変換    …… parofix.py encode                      (同梱 at
 |---|---|
 | Python 3.8 以上 | https://www.python.org/ （インストール時に "Add python.exe to PATH" を ON） |
 | numpy | `pip install numpy` |
-| 吸い出した ISO | `PARODIUS-PORTABLE.ISO` など |
+| UMDから吸い出した ISO | `PARODIUS-PORTABLE.ISO` にリネーム |
 | CD 音源 | 44.1kHz / 16bit の WAV 推奨（他形式・他レートは ffmpeg があれば自動変換） |
 
 | 任意 | 内容 |
