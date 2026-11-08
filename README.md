@@ -7,6 +7,7 @@ and rebuilds the ISO. Pure Python 3.8+ (numpy only) plus a bundled open-source A
 
 * 初めての方は **[docs/tutorial.html](docs/tutorial.html)**（環境構築から変換までの手順）をどうぞ
 * 作者: Imaha486 / 変更履歴: [CHANGELOG.md](CHANGELOG.md) / ライセンス: MIT（同梱バイナリは LGPL、[LICENSE](LICENSE) 参照）
+* 参考記事: https://i486.mods.jp/ichild/parofix
 
 PSP『パロディウス ポータブル』(ULJM-05220) の UMD イメージ (ISO) に含まれる BGM アーカイブを解析し、
 CD からリッピングした音源（『ミュージック フロム コナミアーケードシューティング』など）で
